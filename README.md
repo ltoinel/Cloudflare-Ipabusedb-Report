@@ -1,16 +1,24 @@
-# Cloudflare Security Events - GraphQL API
+# Cloudflare Security Events - AbuseIPDB Reporter
 
 ## Description
 
-Python script to fetch Cloudflare firewall security events via the GraphQL API.
+Advanced Python script to monitor Cloudflare firewall security events via GraphQL API with AbuseIPDB integration for threat intelligence and automated IP reporting.
 
-## ✅ Working Script
+## ✅ Features
 
-The script has been successfully corrected to use Cloudflare's GraphQL API and now retrieves firewall security events.
+- **Smart Event Filtering**: Automatically filters out "hot" source events
+- **IP Summary Dashboard**: Default table view with attack count per IP
+- **AbuseIPDB Integration**: 
+  - IP reputation enrichment (country, ISP, abuse score)
+  - Automated malicious IP reporting
+  - Color-coded threat levels (🟢 safe, 🟠 suspicious, 🔴 malicious)
+- **Detailed Event View**: Debug mode with full event information
+- **Audit Logging**: Automatic report.log for all AbuseIPDB submissions
+- **GraphQL Schema Introspection**: Built-in diagnostic tools
 
 ## Required API Token Permissions
 
-### Steps to create a Cloudflare API token with correct permissions:
+### Cloudflare API Token
 
 1. Log in to your Cloudflare account: https://dash.cloudflare.com/
 
@@ -19,7 +27,7 @@ The script has been successfully corrected to use Cloudflare's GraphQL API and n
 
 3. Click **"Create Token"**
 
-4. Choose a template or create a custom token with the following permissions:
+4. Create a custom token with the following permissions:
 
    **Required Permissions:**
    - `Zone` > `Zone` > `Read`
@@ -33,51 +41,139 @@ The script has been successfully corrected to use Cloudflare's GraphQL API and n
 
 7. **Copy the new token** and use it in your commands
 
+### AbuseIPDB API Key (Optional)
+
+For IP enrichment and reporting features:
+1. Sign up at https://www.abuseipdb.com/
+2. Navigate to your API settings
+3. Generate an API key
+4. Use with `--abuseipdb-key` option
+
 ## Usage
 
-### Basic Command
+### Quick Start (Default: IP Summary)
 
 ```bash
-python3 cloudflare-abuseipdb-report.py \
-  --api-token "YOUR_TOKEN_WITH_PERMISSIONS" \
-  --zone-id "your-zone-id" \
-  --minutes 1440 \
-  --limit 100
+python3 cloudflare-alert.py \
+  --api-token "YOUR_CLOUDFLARE_TOKEN" \
+  --zone-id "your-zone-id"
 ```
+
+Default behavior:
+- Shows last **24 hours** (1440 minutes)
+- Fetches up to **1000 events**
+- Displays **IP summary table** with attack counts
 
 ### Available Options
 
-- `--api-token`: Cloudflare API token (required)
-- `--zone-id`: Cloudflare Zone ID (required)
-- `--minutes`: Time window in minutes (default: 10, max: 1440)
-- `--limit`: Maximum number of events to fetch (default: 50)
-- `--ip-only`: Extract and display only unique IP addresses with attack count
-- `--graphql-query-file`: File containing a custom GraphQL query
-- `--introspect`: Display available GraphQL schema (diagnostic mode)
+| Option | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `--api-token` | ✅ Yes | - | Cloudflare API token with Analytics read permission |
+| `--zone-id` | ✅ Yes | - | Cloudflare Zone ID |
+| `--minutes` | No | 1440 | Lookback window in minutes (max: 1440) |
+| `--limit` | No | 1000 | Maximum number of events to fetch |
+| `--abuseipdb-key` | No | - | AbuseIPDB API key for IP enrichment |
+| `--debug` | No | false | Show detailed event information instead of IP summary |
+| `--report` | No | false | Report malicious IPs to AbuseIPDB (requires `--abuseipdb-key`) |
+| `--graphql-query-file` | No | - | Path to custom GraphQL query file |
+| `--introspect` | No | false | Display GraphQL schema and exit |
 
 ### Examples
 
-#### Fetch events from the last 24 hours
+#### Basic IP Summary (Default)
 ```bash
-python3 cloudflare-abuseipdb-report.py \
+python3 cloudflare-alert.py \
   --api-token "your_token" \
-  --zone-id "your-zone-id" \
-  --minutes 1440 \
-  --limit 100
+  --zone-id "your-zone-id"
 ```
 
-#### Extract IP addresses with attack count
+**Output:**
+```
+┌───────────────────────────┬──────────┬──────────────────────┐
+│ IP Address                │    Count │ Visual               │
+├───────────────────────────┼──────────┼──────────────────────┤
+│ 192.168.1.100             │       45 │ ■■■■■■■■■■■■■■■■■    │
+│ 10.0.0.50                 │       12 │ ■■■■■■■■■■■■         │
+└───────────────────────────┴──────────┴──────────────────────┘
+
+Total: 2 unique IP(s), 57 event(s)
+```
+
+#### Enriched IP Summary with AbuseIPDB
 ```bash
-python3 cloudflare-abuseipdb-report.py \
+python3 cloudflare-alert.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
-  --minutes 1440 \
-  --ip-only
+  --abuseipdb-key "your_abuseipdb_key"
+```
+
+**Output:**
+```
+┌──────────────────────┬───────┬────────────┬──────────────────┬────────┐
+│ IP Address           │ Count │ Country    │ ISP              │  Score │
+├──────────────────────┼───────┼────────────┼──────────────────┼────────┤
+│ 4.235.98.10          │    32 │ Norway     │ Microsoft Corp   │   100% │  🔴
+│ 15.235.151.203       │    20 │ Singapore  │ OVH              │   100% │  🔴
+│ 129.212.239.206      │     8 │ Singapore  │ DigitalOcean     │    72% │  🟠
+│ 12.74.98.86          │     1 │ USA        │ AT&T             │     0% │  🟢
+└──────────────────────┴───────┴────────────┴──────────────────┴────────┘
+```
+
+#### Detailed Event View (Debug Mode)
+```bash
+python3 cloudflare-alert.py \
+  --api-token "your_token" \
+  --zone-id "your-zone-id" \
+  --debug
+```
+
+**Output:**
+```
+52 event(s) found:
+--------------------------------------------------------------------------------
+[2025-12-10T22:00:00Z] 192.168.1.1 (France)
+  Action: block | Source: firewallCustom | Rule: 7e2f6a176e57438aae51869f3a0bdbb3
+  Ray: 9ac0000000000000-AMS
+  Request: GET example.com/api/endpoint
+  User-Agent: Mozilla/5.0...
+--------------------------------------------------------------------------------
+```
+
+#### Report Malicious IPs to AbuseIPDB
+```bash
+python3 cloudflare-alert.py \
+  --api-token "your_token" \
+  --zone-id "your-zone-id" \
+  --abuseipdb-key "your_abuseipdb_key" \
+  --report
+```
+
+**Output:**
+```
+Reporting 15 unique IP(s) to AbuseIPDB...
+--------------------------------------------------------------------------------
+📤 Reporting 4.235.98.10 (32 event(s))...
+  ✅ Successfully reported 4.235.98.10
+📤 Reporting 15.235.151.203 (20 event(s))...
+  ✅ Successfully reported 15.235.151.203
+--------------------------------------------------------------------------------
+Report complete: 15/15 IPs reported successfully
+
+📝 Report logged to: report.log
+```
+
+#### Custom Time Window
+```bash
+python3 cloudflare-alert.py \
+  --api-token "your_token" \
+  --zone-id "your-zone-id" \
+  --minutes 60 \
+  --limit 50
 ```
 
 #### Diagnostic mode (schema introspection)
 ```bash
-python3 cloudflare-abuseipdb-report.py \
+python3 cloudflare-alert.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --introspect > schema.json
