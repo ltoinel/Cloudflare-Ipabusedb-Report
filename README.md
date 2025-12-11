@@ -38,7 +38,7 @@ The script has been successfully corrected to use Cloudflare's GraphQL API and n
 ### Basic Command
 
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "YOUR_TOKEN_WITH_PERMISSIONS" \
   --zone-id "your-zone-id" \
   --minutes 1440 \
@@ -59,7 +59,7 @@ python3 cloudflare-alert.py \
 
 #### Fetch events from the last 24 hours
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --minutes 1440 \
@@ -68,7 +68,7 @@ python3 cloudflare-alert.py \
 
 #### Extract IP addresses with attack count
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --minutes 1440 \
@@ -77,7 +77,7 @@ python3 cloudflare-alert.py \
 
 #### Diagnostic mode (schema introspection)
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --introspect > schema.json
