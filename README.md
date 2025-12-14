@@ -1,8 +1,6 @@
 # Cloudflare Security Events - AbuseIPDB Reporter
 
-## Description
-
-Advanced Python script to monitor Cloudflare firewall security events via GraphQL API with AbuseIPDB integration for threat intelligence and automated IP reporting.
+Advanced Python script to monitor Cloudflare firewall security events via GraphQL API with AbuseIPDB integration for threat intelligence and automated IP reporting. Features **cron integration** for continuous automated monitoring.
 
 ## ✅ Features
 
@@ -14,6 +12,7 @@ Advanced Python script to monitor Cloudflare firewall security events via GraphQ
   - Color-coded threat levels (🟢 safe, 🟠 suspicious, 🔴 malicious)
 - **Detailed Event View**: Debug mode with full event information
 - **Audit Logging**: Automatic report.log for all AbuseIPDB submissions
+- **Automated Cron Scheduling**: Pre-configured /etc/cron.d integration for hourly/daily monitoring
 - **GraphQL Schema Introspection**: Built-in diagnostic tools
 
 ## Required API Token Permissions
@@ -257,6 +256,76 @@ IP: 4.235.98.10
 --------------------------------------------------------------------------------
 ```
 
+## Automated Execution with Cron
+
+### Setup (Recommended)
+
+For continuous automated monitoring, use the included cron configuration file:
+
+```bash
+# 1. Edit the configuration file to add your API credentials
+nano cloudflare-alert
+
+# 2. Copy it to the system cron.d directory
+sudo cp cloudflare-alert /etc/cron.d/
+
+# 3. Set proper permissions
+sudo chmod 644 /etc/cron.d/cloudflare-alert
+
+# 4. Verify it's active
+sudo service cron status
+```
+
+### Configuration in /etc/cron.d/cloudflare-alert
+
+**Edit these variables (lines 19-21):**
+```bash
+CLOUDFLARE_API_TOKEN=YOUR_CLOUDFLARE_TOKEN_HERE
+CLOUDFLARE_ZONE_ID=YOUR_ZONE_ID_HERE
+ABUSEIPDB_API_KEY=YOUR_ABUSEIPDB_KEY_HERE
+```
+
+### Available Schedules
+
+**Default: Hourly at minute 0**
+```bash
+0 * * * * root /usr/bin/python3 $SCRIPT_PATH [...] >> /var/log/cloudflare-alert.log 2>&1
+```
+
+**Other included options (uncomment in file):**
+- Every 6 hours (06:00, 12:00, 18:00, 00:00)
+- Every 30 minutes
+- Every 15 minutes
+- Once daily at 2:00 AM
+- Twice daily (00:00, 12:00) with detailed debug mode
+- Weekly full report (Monday at 09:00 AM)
+
+### View Logs
+
+```bash
+# Real-time log monitoring
+tail -f /var/log/cloudflare-alert.log
+
+# Check for errors
+grep ERROR /var/log/cloudflare-alert.log
+
+# View submitted IPs
+tail -f report.log
+```
+
+### Verify Installation
+
+```bash
+# Check if cron job is registered
+sudo grep CLOUDFLARE_API_TOKEN /etc/cron.d/cloudflare-alert
+
+# List all cron jobs
+sudo crontab -l
+
+# Check cron service status
+systemctl status cron
+```
+
 ## Dependencies
 
 ```bash
@@ -309,25 +378,6 @@ query time range is too large... Time range can't be wider than 86400s
 
 ### Report not logging
 ➜ Ensure you have write permissions in the current directory for `report.log`
-
-## Version History
-
-### v2.0.0 (Current)
-- ✨ **New**: AbuseIPDB integration for IP enrichment
-- ✨ **New**: Automated IP reporting to AbuseIPDB
-- ✨ **New**: Color-coded threat levels in output
-- ✨ **New**: Automatic report.log generation
-- ✨ **New**: IP summary table as default view
-- 🔧 **Changed**: Default lookback to 24 hours (1440 minutes)
-- 🔧 **Changed**: Default limit increased to 1000 events
-- 🔧 **Changed**: Auto-filter "hot" source events in GraphQL query
-- 🎨 **Enhanced**: Clean code refactoring with type hints
-- 🎨 **Enhanced**: Beautiful table formatting with UTF-8 borders
-
-### v1.0.0
-- Initial GraphQL API migration
-- Schema introspection support
-- Basic event display
 
 ## Resources
 
