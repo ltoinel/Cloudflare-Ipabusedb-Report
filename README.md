@@ -53,7 +53,7 @@ For IP enrichment and reporting features:
 ### Quick Start (Default: IP Summary)
 
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "YOUR_CLOUDFLARE_TOKEN" \
   --zone-id "your-zone-id"
 ```
@@ -81,7 +81,7 @@ Default behavior:
 
 #### Basic IP Summary (Default)
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id"
 ```
@@ -100,7 +100,7 @@ Total: 2 unique IP(s), 57 event(s)
 
 #### Enriched IP Summary with AbuseIPDB
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --abuseipdb-key "your_abuseipdb_key"
@@ -120,7 +120,7 @@ python3 cloudflare-alert.py \
 
 #### Detailed Event View (Debug Mode)
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --debug
@@ -140,7 +140,7 @@ python3 cloudflare-alert.py \
 
 #### Report Malicious IPs to AbuseIPDB
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --abuseipdb-key "your_abuseipdb_key" \
@@ -163,7 +163,7 @@ Report complete: 15/15 IPs reported successfully
 
 #### Custom Time Window
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --minutes 60 \
@@ -172,7 +172,7 @@ python3 cloudflare-alert.py \
 
 #### Diagnostic mode (schema introspection)
 ```bash
-python3 cloudflare-alert.py \
+python3 cloudflare-abuseipdb-report.py \
   --api-token "your_token" \
   --zone-id "your-zone-id" \
   --introspect > schema.json
@@ -264,19 +264,19 @@ For continuous automated monitoring, use the included cron configuration file:
 
 ```bash
 # 1. Edit the configuration file to add your API credentials
-nano cloudflare-alert
+nano cloudflare-abuseipdb-report
 
 # 2. Copy it to the system cron.d directory
-sudo cp cloudflare-alert /etc/cron.d/
+sudo cp cloudflare-abuseipdb-report /etc/cron.d/
 
 # 3. Set proper permissions
-sudo chmod 644 /etc/cron.d/cloudflare-alert
+sudo chmod 644 /etc/cron.d/cloudflare-abuseipdb-report
 
 # 4. Verify it's active
 sudo service cron status
 ```
 
-### Configuration in /etc/cron.d/cloudflare-alert
+### Configuration in /etc/cron.d/cloudflare-abuseipdb-report
 
 **Edit these variables (lines 19-21):**
 ```bash
@@ -289,7 +289,7 @@ ABUSEIPDB_API_KEY=YOUR_ABUSEIPDB_KEY_HERE
 
 **Default: Hourly at minute 0**
 ```bash
-0 * * * * root /usr/bin/python3 $SCRIPT_PATH [...] >> /var/log/cloudflare-alert.log 2>&1
+0 * * * * root /usr/bin/python3 $SCRIPT_PATH [...] >> /var/log/cloudflare-abuseipdb-report.log 2>&1
 ```
 
 **Other included options (uncomment in file):**
@@ -304,10 +304,10 @@ ABUSEIPDB_API_KEY=YOUR_ABUSEIPDB_KEY_HERE
 
 ```bash
 # Real-time log monitoring
-tail -f /var/log/cloudflare-alert.log
+tail -f /var/log/cloudflare-abuseipdb-report.log
 
 # Check for errors
-grep ERROR /var/log/cloudflare-alert.log
+grep ERROR /var/log/cloudflare-abuseipdb-report.log
 
 # View submitted IPs
 tail -f report.log
@@ -317,7 +317,7 @@ tail -f report.log
 
 ```bash
 # Check if cron job is registered
-sudo grep CLOUDFLARE_API_TOKEN /etc/cron.d/cloudflare-alert
+sudo grep CLOUDFLARE_API_TOKEN /etc/cron.d/cloudflare-abuseipdb-report
 
 # List all cron jobs
 sudo crontab -l
